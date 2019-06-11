@@ -1,12 +1,13 @@
-package lab2.server;
+package lab3.server;
 
-import lab2.network.TCPConnection;
-import lab2.network.TCPConnectionListener;
+import lab3.network.TCPConnection;
+import lab3.network.TCPConnectionListener;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 
 public class Server implements TCPConnectionListener {
 
@@ -17,6 +18,7 @@ public class Server implements TCPConnectionListener {
 
     private static final String IPP_ADDR = "127.0.0.1";
     private static final int PORT = 9000;
+    private ArrayList <TCPConnection> connections;
 
 
 
@@ -72,6 +74,8 @@ public class Server implements TCPConnectionListener {
     private void disconnectedServer(){
         try {
             serverSocket.close();
+            for (int i=0;i<connections.size();i++) disconnected(connections.get(i));
+            connections.clear();
         }
         catch (IOException e) {
             eventListener.onException(this,e);
@@ -83,7 +87,7 @@ public class Server implements TCPConnectionListener {
 
             System.out.println("Client disconnecting ...");
             tcpConnection.disconnected();
-            //eventListener.onDisconnectionReady(this,tcpConnection);
+
 
     }
     private void process(TCPConnection tcpConnection,String value){
@@ -98,7 +102,6 @@ public class Server implements TCPConnectionListener {
             message = data[0];
         }
         if (data.length == 2) {
-            // Нет никнейма
             nick = data[0];
             message = data[1];
         }
@@ -112,10 +115,14 @@ public class Server implements TCPConnectionListener {
         //Обработка команд от клиента
         if (message.equals("END")) disconnected(tcpConnection);
     }
+    private void sendStringConnections( String value){
+       for (int i=0;i<connections.size();i++) sendString(connections.get(i),value);
+    }
 
     @Override
     public synchronized void onConnectionReady(TCPConnection tcpConnection) {
         eventListener.onConnectionReady(this,tcpConnection);
+        connections.add(tcpConnection);
     }
 
     @Override
@@ -123,7 +130,7 @@ public class Server implements TCPConnectionListener {
 
         String message = value.trim();
         eventListener.onMessageString(Server.this,tcpConnection,value);
-        tcpConnection.sendString(value);
+        sendStringConnections(value);
         process(tcpConnection,value);
 
     }
@@ -131,6 +138,7 @@ public class Server implements TCPConnectionListener {
     @Override
     public synchronized void onDisconnection(TCPConnection tcpConnection) {
         eventListener.onDisconnectionReady(this,tcpConnection);
+        if (tcpConnection != null) connections.remove(tcpConnection);
     }
 
     @Override

@@ -1,7 +1,7 @@
-package lab2.client;
+package lab3.client;
 
-import lab2.network.TCPConnection;
-import lab2.network.TCPConnectionListener;
+import lab3.network.TCPConnection;
+import lab3.network.TCPConnectionListener;
 
 import java.io.IOException;
 

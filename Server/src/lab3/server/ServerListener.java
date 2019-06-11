@@ -1,6 +1,6 @@
-package lab2.server;
+package lab3.server;
 
-import lab2.network.TCPConnection;
+import lab3.network.TCPConnection;
 
 public interface ServerListener {
     void onConnectionServer(Server server);

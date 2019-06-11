@@ -1,4 +1,4 @@
-package lab2.network;
+package lab3.network;
 
 public interface TCPConnectionListener {
 
