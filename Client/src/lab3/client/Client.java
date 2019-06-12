@@ -16,7 +16,7 @@ public class Client implements TCPConnectionListener {
 
     public Client(ClientListener event) {
         this.event = event;
-        this.nick = "Клиент";
+        this.nick = "Client";
 
         try {
             new TCPConnection(this,IPP_ADDR,PORT);

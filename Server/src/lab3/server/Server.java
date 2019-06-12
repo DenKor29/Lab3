@@ -26,6 +26,7 @@ public class Server implements TCPConnectionListener {
     public Server(ServerListener eventListener)  {
 
         this.eventListener = eventListener;
+        this.connections = new  ArrayList <TCPConnection>();
 
     }
 
@@ -57,21 +58,22 @@ public class Server implements TCPConnectionListener {
 
             while (!rxThread.isInterrupted()) {
                 try {
-                    Socket client_socket = serverSocket.accept();
-                    if (client_socket !=null) {
-                        new TCPConnection(this, client_socket);
-                    }
+
+                        new TCPConnection(this, serverSocket.accept());
+
                 } catch (IOException e) {
                     if (!(e instanceof SocketTimeoutException))
                         System.out.println("TCPConnection exeption:" + e);
                 }
-                ;
+
             }
 
 
     }
 
     private void disconnectedServer(){
+
+        System.out.println("Server disconnect." );
         try {
             serverSocket.close();
             for (int i=0;i<connections.size();i++) disconnected(connections.get(i));
@@ -95,7 +97,7 @@ public class Server implements TCPConnectionListener {
         String nick = "";
         String message = "";
 
-        String[] data = value.split(":");
+        String[] data = value.split(":",2);
 
         if (data.length == 1) {
             // Нет никнейма
@@ -106,12 +108,6 @@ public class Server implements TCPConnectionListener {
             message = data[1];
         }
 
-        if (data.length >2) {
-            //Это разбивка основного текста - всотанавливаем строку
-            for (int i=1;i<data.length;i++) {
-                message+=data[i]+":";
-            }
-        }
         //Обработка команд от клиента
         if (message.equals("END")) disconnected(tcpConnection);
     }
@@ -128,7 +124,6 @@ public class Server implements TCPConnectionListener {
     @Override
     public synchronized void onReceiveString(TCPConnection tcpConnection, String value) {
 
-        String message = value.trim();
         eventListener.onMessageString(Server.this,tcpConnection,value);
         sendStringConnections(value);
         process(tcpConnection,value);
@@ -138,7 +133,7 @@ public class Server implements TCPConnectionListener {
     @Override
     public synchronized void onDisconnection(TCPConnection tcpConnection) {
         eventListener.onDisconnectionReady(this,tcpConnection);
-        if (tcpConnection != null) connections.remove(tcpConnection);
+        connections.remove(tcpConnection);
     }
 
     @Override
